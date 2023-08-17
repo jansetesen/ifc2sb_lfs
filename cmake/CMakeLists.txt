@@ -157,7 +157,7 @@ message(STATUS "Boost libraries found in ${Boost_LIBRARY_DIRS}")
 message("\n###\n")
 
 # Clipper
-set(CLIPPER_INCLUDE_PATH "/usr/local/include/polyclipping" CACHE STRING "Polyclipping include path")
+set(CLIPPER_INCLUDE_PATH "/usr/include/polyclipping" CACHE STRING "Polyclipping include path")
 
 # include all directories
 if (STATIC_OCC_IFCOS)
