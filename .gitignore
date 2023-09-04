@@ -2,3 +2,4 @@
 build/
 cmake/cmake-build-debug-event-trace/
 cmake/cmake-build-debug/
+cmake/cmake-build-release/
