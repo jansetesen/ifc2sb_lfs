@@ -210,7 +210,7 @@ target_link_libraries(
 
 # By default build type is set to Debug
 set(CMAKE_BUILD_TYPE Debug)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpic -fopenmp -O3")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpic -fopenmp")
 
 message(STATUS "Static build: ${STATIC_OCC_IFCOS}")
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
