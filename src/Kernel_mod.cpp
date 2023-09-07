@@ -138,9 +138,9 @@ void Kernel::remove_unused_instances_from_model(std::unique_ptr<IfcParse::IfcFil
     for (const auto &m: M2) {
         boost::shared_ptr<IfcEntityList> entities;
         try { entities = model->instances_by_type(m.first); }
-        catch (...) {}
+        catch (...) { }
 
-        if (entities->size() > 0)
+        if (entities && entities->size() > 0)
             for (auto it = entities->end() - 1; it >= entities->begin(); --it) {
                 auto *entity = (IfcUtil::IfcBaseEntity *) *it;
 
@@ -165,9 +165,9 @@ void Kernel::remove_unused_instances_from_model(std::unique_ptr<IfcParse::IfcFil
     for (const auto &m: M3) {
         boost::shared_ptr<IfcEntityList> entities;
         try { entities = model->instances_by_type(m.first); }
-        catch (...) {}
+        catch (...) { }
 
-        if (entities->size() > 0)
+        if (entities && entities->size() > 0)
             for (auto it = entities->end() - 1; it >= entities->begin(); --it) {
                 auto *entity = (IfcUtil::IfcBaseEntity *) *it;
                 auto Attribute = entity->get(m.second);
