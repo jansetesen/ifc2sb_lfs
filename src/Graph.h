@@ -22,7 +22,7 @@ class Graph {
 public:
     //! Stores ifc model and all other important topological and geometric objects.
     //! _input: Input path and name of ifc file.
-    //! _input: Output path and name of result file.
+    //! _output: Output path and name of result file.
     //! _num_threads: Number of threads used for parallelization.
     //! _stl: If true, output will be an stl with first level space boundaries. Else IFC.
     //! _space_split: To be deprecated. If true, use old IfcSpaces to create virtual space boundaries.
