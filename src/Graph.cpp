@@ -138,7 +138,7 @@ bool Graph::run() {
     // Viewer::visualize_products(products);
     // Viewer::visualize_orig_faces(ifc_faces);
     // Viewer::visualize_cFaces(faces_1st_level);
-    // Viewer::visualize_spaces(spaces, faces_1st_level, true);
+    // Viewer::visualize_spaces(spaces, true, first_level_only);
     // Viewer::visualize_cFaces_as_space_boundaries(faces_2nd_level);
 #endif
 
