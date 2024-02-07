@@ -1,6 +1,6 @@
 // Copyright 2022 Eric Fichter
-#ifdef VISUALIZATION
 #include "Viewer.h"
+#ifdef VISUALIZATION
 
 void Viewer::visualize_products(const std::list<Product> &products) {
 
