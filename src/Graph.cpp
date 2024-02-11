@@ -113,8 +113,16 @@ bool Graph::run() {
     if (!prepare_products(K, opening_shapes))
         return false;
 
+#ifdef VISUALIZATION
+//    Viewer::visualize_products(products);
+#endif
+
     if (!prepare_faces(K, opening_shapes))
         return false;
+
+#ifdef VISUALIZATION
+//    Viewer::visualize_orig_faces(ifc_faces);
+#endif
 
     if (!calc_faces_first_level(K))
         return false;
@@ -135,11 +143,9 @@ bool Graph::run() {
     IfcCheck ifccheck(model.get(), num_threads);
 
 #ifdef VISUALIZATION
-    // Viewer::visualize_products(products);
-    // Viewer::visualize_orig_faces(ifc_faces);
-    // Viewer::visualize_cFaces(faces_1st_level);
-    // Viewer::visualize_spaces(spaces, true, first_level_only);
-    // Viewer::visualize_cFaces_as_space_boundaries(faces_2nd_level);
+//     Viewer::visualize_cFaces(faces_1st_level);
+//     Viewer::visualize_spaces(spaces, true, first_level_only);
+//     Viewer::visualize_cFaces_as_space_boundaries(faces_2nd_level);
 #endif
 
     return true;
