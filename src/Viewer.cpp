@@ -45,6 +45,9 @@ void Viewer::visualize_orig_faces(const std::list<oFace> &orig_faces) {
         if (f.IsOffset()) continue;
         ds.emplace_back();
         ds.back().shape = f.face;
+        ds.back().show_adaptor_face_normal = true;
+        ds.back().adaptor_face_normal = Kernel::face_normal(TopoDS::Face(ds.back().shape));
+        ds.back().center_of_face = Kernel::face_center(TopoDS::Face(ds.back().shape));
         ds.back().clr_random = true;
     }
     ViewerMain::start_viewer(ds);
@@ -120,9 +123,9 @@ void Viewer::visualize_cFaces(const std::list<cFace> &cFaces) {
 
         ds.emplace_back();
         ds.back().shape = cface.face;
-//        ds.back().show_adaptor_face_normal = true;
-//        ds.back().adaptor_face_normal = Kernel::face_normal(TopoDS::Face(ds.back().shape));
-//        ds.back().center_of_face = Kernel::face_center(TopoDS::Face(ds.back().shape));
+        ds.back().show_adaptor_face_normal = true;
+        ds.back().adaptor_face_normal = Kernel::face_normal(TopoDS::Face(ds.back().shape));
+        ds.back().center_of_face = Kernel::face_center(TopoDS::Face(ds.back().shape));
         ds.back().clr_by_string = true;
         ds.back().transparency = 0.6;
 
