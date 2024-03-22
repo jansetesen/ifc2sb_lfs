@@ -245,12 +245,14 @@ bool Graph::prepare_products(Kernel &K, std::unordered_map<IfcUtil::IfcBaseClass
         products_with_faulty_shape = Kernel::check_shells(products_with_faulty_shape);
         if (!products_with_faulty_shape.empty())
             for (auto &p: products_with_faulty_shape) {
-                TopoDS_ListOfShape L;
-                L.Append(p->shape);
-                TopoDS_Shape box = Kernel::best_fitting_bbox(L);
-                if (!box.IsNull()) {
-                    p->shape = box;
-                    std::cerr << "[Info] Use bounding box as shape for " << p->ifcproduct->data().toString() << std::endl;
+                if(!p->shape.IsNull()) {
+                    TopoDS_ListOfShape L;
+                    L.Append(p->shape);
+                    TopoDS_Shape box = Kernel::best_fitting_bbox(L);
+                    if (!box.IsNull()) {
+                         p->shape = box;
+                         std::cerr << "[Info] Use bounding box as shape for " << p->ifcproduct->data().toString() << std::endl;
+                     }
                 }
             }
             // Delete products that couldn't be healed
