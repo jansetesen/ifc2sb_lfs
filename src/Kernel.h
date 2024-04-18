@@ -98,6 +98,8 @@ public:
 
     static void heal_products(std::list<Product *> &products_to_heal);
 
+    static void heal_cfaces(std::list<cFace> &cfaces_to_heal);
+
     static TopoDS_Shape best_fitting_bbox(const TopoDS_ListOfShape &L);
 
     static TopoDS_Shape best_fitting_bbox(const TopoDS_Shape &S);
@@ -802,6 +804,7 @@ private:
     friend class Graph;
 
     friend class Clip;
+
 };
 
 #endif //KERNEL_H

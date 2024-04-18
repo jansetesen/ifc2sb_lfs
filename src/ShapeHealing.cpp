@@ -13,12 +13,15 @@ TopoDS_Shape ShapeHealing::heal_shape(bool ignore_curved_edges) {
         return {};
 
     remove_duplicated_hashes_from_shape();
-
+    if (Shp.IsNull())
+        return {};
     fuse();
-
+    if (Shp.IsNull())
+        return {};
     bool has_curved_edges, has_curved_faces;
     curvatures(has_curved_edges, has_curved_faces);
-
+    if (Shp.IsNull())
+        return {};
     if (has_curved_faces || (has_curved_edges && !ignore_curved_edges)) {
         std::cerr << "[Info] Shape to be healed will be triangulated." << std::endl;
         Shp = Kernel::polygonize_shape(Kernel::shape_copy(Shp), 0.8, false, 0.8, true);
@@ -142,22 +145,26 @@ void ShapeHealing::fuse() {
     for (Ex.Init(Shp, TopAbs_FACE); Ex.More(); Ex.Next())
         B.AddArgument(Ex.Current());
 
-    B.SetFuzzyValue(fuse_tol);
-    B.Perform();
+    std::cout << "heyyyy" << B.Arguments().Size() <<std::endl;
 
-    if (B.HasWarnings()) {
-        std::cerr << "Warnings:" << std::endl;
-        B.DumpWarnings(std::cerr);
+    if(B.Arguments().Size()>1) {
+        B.SetFuzzyValue(fuse_tol);
+        B.Perform();
+
+        if (B.HasWarnings()) {
+            std::cerr << "Warnings:" << std::endl;
+            B.DumpWarnings(std::cerr);
+        }
+        if (B.HasErrors()) {
+            std::cerr << "Errors:" << std::endl;
+            B.DumpErrors(std::cerr);
+        }
+        //if (!B.HasModified())
+        //    std::cerr << "Nothing was modified." << std::endl;
+        if (B.Shape().IsNull())
+            std::cout << "yes";
+        Shp = B.Shape();
     }
-    if (B.HasErrors()) {
-        std::cerr << "Errors:" << std::endl;
-        B.DumpErrors(std::cerr);
-    }
-    //if (!B.HasModified())
-    //    std::cerr << "Nothing was modified." << std::endl;
-
-    Shp = B.Shape();
-
 }
 
 void ShapeHealing::fill_face_list() {

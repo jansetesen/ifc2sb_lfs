@@ -1103,6 +1103,28 @@ void Kernel::heal_products(std::list<Product *> &products_to_heal) {
     std::cout << "(" << products_to_heal.size() << ") \t... \tElapsed time: " << elapsed.count() << " s\n";
 }
 
+void Kernel::heal_cfaces(std::list<cFace> &cfaces_to_heal) {
+
+    std::cout << "Heal cFaces ";
+
+    auto start = std::chrono::high_resolution_clock::now();
+
+    for (auto &p: cfaces_to_heal) {
+        if(p.face.IsNull()) {
+            std::cout << "hey" << std::endl;
+        }
+        TopoDS_Shape S = ShapeHealing(p.face).heal_shape();
+        bool same = p.face.IsEqual(TopoDS::Face(S));
+        if (S.IsNull()) { std::cerr << "[Warning] Shape healing failed." << std::endl;}
+        else { p.face = TopoDS::Face(S);
+        std::cout << "Successful" << std::endl; }
+    }
+
+    auto finish = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> elapsed = finish - start;
+    std::cout << "(" << cfaces_to_heal.size() << ") \t... \tElapsed time: " << elapsed.count() << " s\n";
+}
+
 TopoDS_Shape Kernel::replace_subshapes_in_shape(const std::list<std::pair<TopoDS_Shape, TopoDS_Shape>> &old_and_new_subshapes, TopoDS_Shape &shape) {
 
     ShapeBuild_ReShape R;

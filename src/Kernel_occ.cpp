@@ -390,8 +390,7 @@ TopoDS_Compound Kernel::compound_from_shape_list(const TopoDS_ListOfShape &L) {
     BRep_Builder B;
     B.MakeCompound(C);
     for (const auto &S: L)
-        B.Add(C, S);
-
+            B.Add(C, S);
     return C;
 }
 
@@ -873,6 +872,9 @@ TopoDS_Shape Kernel::prism_from_face(const TopoDS_Face &F, gp_Dir n, double l, b
     v.Scale(l);
     TopoDS_Shape P = BRepPrimAPI_MakePrism(F, v).Shape();
 
+    //Viewer::visualize_shape(F);
+    //Viewer::visualize_shape(P);
+
     if (rm_tf || rm_bf) {
 
         ShapeBuild_ReShape R;
@@ -892,6 +894,7 @@ TopoDS_Shape Kernel::prism_from_face(const TopoDS_Face &F, gp_Dir n, double l, b
         }
         P = R.Apply(P);
     }
+    //Viewer::visualize_shape(P);
     return P;
 }
 

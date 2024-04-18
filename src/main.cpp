@@ -89,7 +89,7 @@ int main(int argc, char **argv) {
             ("shadings", "Calculate shadings")
             ("virtualopening", "Use Ifcopeningelelements to create virtual space boundaries")
             ("virtualbyspace", "Use IfcSpaces to create virtual space boundaries")
-            ("length,l", po::value<double>(&transmission_length)->default_value(0.41, "0.41"), "Length to distinguish 2a/2b SB type");
+            ("length,l", po::value<double>(&transmission_length)->default_value(0.61, "0.61"), "Length to distinguish 2a/2b SB type");
 
     // Command line options
     po::options_description cmdline_options;

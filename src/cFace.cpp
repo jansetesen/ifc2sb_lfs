@@ -535,7 +535,8 @@ bool cFace::unifying_criteria(const cFace *a) {
     if (a->physicalOrVirtual != physicalOrVirtual) return false;
     if (a->internalOrExternal != internalOrExternal) return false;
     if (a->space_behind != space_behind) return false;
-    //if (Kernel::round_double_three_digits(a->distance) != Kernel::round_double_three_digits(distance)) return false; // already taken into account when comparing material maps
+    //if (Kernel::round_double_three_digits(a->distance) != Kernel::round_double_three_digits(distance)) return false;
+    // already taken into account when comparing material maps
     //if (!map_compare_keys(a->materials, materials)) return false;
     if (!map_compare(a->materials, materials)) return false;
     // only faces from walls that were cut by opening have a parent_id different from 0. parent_id is hash of ancestor.
@@ -606,14 +607,16 @@ void cFace::UnifyFaces(std::set<cFace *> &faces_to_unify) {
 
     if (faces_to_unify.empty()) return;
 
+    //Viewer::visualize_shape(face);
     // make compound from face and it's adjacent faces
     BRep_Builder B;
     TopoDS_Compound C;
     B.MakeCompound(C);
     B.Add(C, face);
-    for (auto &adj: faces_to_unify)
+    for (auto &adj: faces_to_unify) {
         B.Add(C, adj->face);
-
+        //Viewer::visualize_shape(adj->face);
+    }
     // unify faces in the compound
     ShapeUpgrade_UnifySameDomain U(C, true, true, true);
     U.SetAngularTolerance(1.0e-5); // Precision::Angular() * 2. Value was raised because of parallel fusing to compensate moved faces.
@@ -633,6 +636,7 @@ void cFace::UnifyFaces(std::set<cFace *> &faces_to_unify) {
         for (auto &c: faces_to_unify)
             std::cerr << "\t" << c->Info() << "\t" << c->IsOpening() << "\t" << (c->IsOpening() ? c->Ancestor()->Opening()->data().getArgument(0)->toString() : "null") << std::endl;
     }
+    //Viewer::visualize_shape(face);
 }
 
 std::string cFace::STLSolidName() {

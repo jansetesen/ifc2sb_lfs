@@ -3647,7 +3647,11 @@ void Kernel::find_clipping_pairs(cfaceSetMap &M_planar, cfaceSetMap &M_curved, s
     for (auto &cface: cFaces) {
         if (cface.IsVirtual()) continue;
 
+        std::list<cFace> visual;
+        visual.push_back(cface);
+        //Viewer::visualize_cFaces(visual);
         Bnd_Box bnd = aabb(cface.face, 0.001);
+        //Viewer::visualize_shape(aabb_to_shape(bnd));
         double min[3] = {bnd.CornerMin().X(), bnd.CornerMin().Y(), bnd.CornerMin().Z()};
         double max[3] = {bnd.CornerMax().X(), bnd.CornerMax().Y(), bnd.CornerMax().Z()};
         std::list<cFace *> found_inner_faces;
@@ -3663,12 +3667,17 @@ void Kernel::find_clipping_pairs(cfaceSetMap &M_planar, cfaceSetMap &M_curved, s
                 continue;
             }
             //if (cface.FixedFaceNormal().Angle(f->FixedFaceNormal()) > max_angle) continue; // no need to check here, because normals could be unknown
-            if (cface.IsPolygon() && f->IsPolygon()) M_planar[&cface].insert(f);
+            if (cface.IsPolygon() && f->IsPolygon()) {
+                M_planar[&cface].insert(f);
+                visual.push_back(*f);
+            }
             else {
                 std::cerr << "non_planar" << std::endl;
                 M_curved[&cface].insert(f);
+                visual.push_back(*f);
             }
         }
+        //Viewer::visualize_cFaces(visual);
     }
 
     auto finish = std::chrono::high_resolution_clock::now();
@@ -3899,7 +3908,11 @@ void Kernel::find_clipping_pairs_2(cfaceSetMap &M_planar, cfaceSetMap &M_curved,
     for (auto &cface: cFaces) {
         if (cface.IsVirtual()) continue;
 
+        std::list<cFace> visual;
+        visual.push_back(cface);
+        //Viewer::visualize_cFaces(visual);
         Bnd_Box bnd = aabb(cface.face, 0.001);
+        //Viewer::visualize_shape(aabb_to_shape(bnd));
         double min[3] = {bnd.CornerMin().X(), bnd.CornerMin().Y(), bnd.CornerMin().Z()};
         double max[3] = {bnd.CornerMax().X(), bnd.CornerMax().Y(), bnd.CornerMax().Z()};
         std::list<cFace *> found_faces;
@@ -3917,12 +3930,17 @@ void Kernel::find_clipping_pairs_2(cfaceSetMap &M_planar, cfaceSetMap &M_curved,
                 continue;
             }
 
-            if (cface.IsPolygon() && f->IsPolygon()) M_planar[&cface].insert(f);
+            if (cface.IsPolygon() && f->IsPolygon())  {
+                M_planar[&cface].insert(f);
+                visual.push_back(*f);
+            }
             else {
                 std::cerr << "non_planar" << std::endl;
                 M_curved[&cface].insert(f);
+                visual.push_back(*f);
             }
         }
+        //Viewer::visualize_cFaces(visual);
     }
 
     auto finish = std::chrono::high_resolution_clock::now();
@@ -6453,7 +6471,7 @@ void Kernel::check_corresponding_face_pairs_space_approach(std::list<cFace> &cFa
 
 void Kernel::identify_duplicate_faces_unknown_normals(std::list<cFace> &cFaces, std::unordered_map<std::string, unsigned int> ranks) {
 
-    // identify mat-mat faces by checking face normals of faces with same id (which were created during fuse, when to faces were coplanar).
+    // identify mat-mat faces by checking face normals of faces with same id (which were created during fuse, when two faces were coplanar).
 
     auto start = std::chrono::high_resolution_clock::now();
 
