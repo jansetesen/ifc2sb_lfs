@@ -750,7 +750,7 @@ void Viewer::visualize_cFaces_as_space_boundaries(const std::list<cFace> &cFaces
     std::list<viewerHelper::DisplayShapes> ds;
     for (const auto &cface: cFaces) {
 
-        if (cface.RelSpace()->is_facade) continue;
+        //if (cface.RelSpace()->is_facade) continue;
 
         ds.emplace_back();
         ds.back().transparency = 0.7;

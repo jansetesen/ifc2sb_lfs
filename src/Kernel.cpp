@@ -470,6 +470,7 @@ void Kernel::identify_facade_space(std::list<Space> &spaces) {
     else {
         s->is_facade = true;
         s->shell.Complement();
+        //Viewer::visualize_shape(s->shell);
     }
 
     auto finish = std::chrono::high_resolution_clock::now();
@@ -4884,8 +4885,15 @@ void Kernel::perform_ray_tracing(IntersectorInterface &intersector, const std::v
 
                 // filter corresponding if not parallel
                 double angle = cface->FixedFaceNormal().Angle(hit_cface->FixedFaceNormal());
-                if (angle > min_angle)
+                if (angle > min_angle) {
                     is_corresponding = true;
+                    /*
+                    std::list<cFace> a;
+                    a.emplace_back(*hit_cface);
+                    a.emplace_back(*cface);
+                    Viewer::visualize_cFaces_as_space_boundaries(a);
+                    */
+                }
 
                 // because map is ordered, hit_cface is the "corresponding" face
                 corr = hit_cface;
@@ -6911,3 +6919,142 @@ void Kernel::add_face_reversed(std::list<cFace> &cFaces, cFace *cface, unsigned 
 }
 
 std::string Kernel::remove_first_and_last_char(std::string s) { return s.size() < 2 ? s : s.substr(1, s.size() - 2); }
+
+void Kernel::deneme(std::list<cFace> &cFaces) {
+
+    cface_tree3D tree_cfaces;  // fill rtree
+    for (auto &cface: cFaces) {
+        Bnd_Box bnd = aabb(cface.face, 0.001);
+        double min[3] = {bnd.CornerMin().X(), bnd.CornerMin().Y(), bnd.CornerMin().Z()};
+        double max[3] = {bnd.CornerMax().X(), bnd.CornerMax().Y(), bnd.CornerMax().Z()};
+        tree_cfaces.Insert(min, max, &cface);
+    };
+
+    for (auto &cface: cFaces) {
+        //if (cface.IsVirtual()) continue;
+
+        //std::list<cFace> visual;
+        //visual.push_back(cface);
+        //Viewer::visualize_cFaces(visual);
+        Bnd_Box bnd = aabb(cface.face, 0.001);
+        //Viewer::visualize_shape(aabb_to_shape(bnd));
+        double min[3] = {bnd.CornerMin().X(), bnd.CornerMin().Y(), bnd.CornerMin().Z()};
+        double max[3] = {bnd.CornerMax().X(), bnd.CornerMax().Y(), bnd.CornerMax().Z()};
+        std::list<cFace *> found_nb_faces;
+        tree_cfaces.Search(min, max, [&found_nb_faces](cFace *found_nb_face) {
+            found_nb_faces.push_back(found_nb_face);
+            return true;
+        });
+        cface.to_be_fused.push_back(cface);
+
+        for (auto &f: found_nb_faces) {
+
+            if (f->FaceID() == cface.FaceID()) {
+                //std::cout << "[Info] Skip coplanar face. " << cface.Info() << "\t" << f->Info() << "\n";
+                continue;
+            }
+
+            cface.to_be_fused.push_back(*f);
+        }
+    }
+}
+
+void Kernel::deneme1(oFace &oface, std::list<oFace> &orig_faces){
+
+    typedef rtree_lib::RTree<oFace *, double, 3, double> oface_tree3D;
+    oface_tree3D tree_ofaces;  // fill rtree
+    for (auto &f: orig_faces) {
+        Bnd_Box bnd = Kernel::aabb(f.face, 0.64);
+        double min[3] = {bnd.CornerMin().X(), bnd.CornerMin().Y(), bnd.CornerMin().Z()};
+        double max[3] = {bnd.CornerMax().X(), bnd.CornerMax().Y(), bnd.CornerMax().Z()};
+        tree_ofaces.Insert(min, max, &f);
+    };
+
+    Viewer::visualize_shape(oface.face);
+    Bnd_Box bnd = Kernel::aabb(oface.face, 0.64);
+    Viewer::visualize_shape(aabb_to_shape(bnd));
+    double min[3] = {bnd.CornerMin().X(), bnd.CornerMin().Y(), bnd.CornerMin().Z()};
+    double max[3] = {bnd.CornerMax().X(), bnd.CornerMax().Y(), bnd.CornerMax().Z()};
+    std::list<oFace *> found_nb_faces;
+    tree_ofaces.Search(min, max, [&found_nb_faces](oFace *found_nb_face) {
+        found_nb_faces.push_back(found_nb_face);
+        return true;
+        });
+    oface.to_be_fused.push_back(oface);
+
+    for (auto &f: found_nb_faces) {
+        if (f->FaceID() == oface.FaceID()) {
+            //std::cout << "[Info] Skip coplanar face. " << cface.Info() << "\t" << f->Info() << "\n";
+            continue;
+        }
+
+        oface.to_be_fused.push_back(*f);
+    }
+}
+
+bool Kernel::deneme2(TopoDS_Shape &fuse, std::list<oFace> &orig_faces, std::list<cFace> &cFaces, double fuzzy_tol, unsigned int &cface_id, unsigned int &oface_id){
+
+    std::list<oFace> temp_oFaces = orig_faces;
+
+    for(auto it = orig_faces.begin(); it != orig_faces.end();) {
+        oFace& f = *it;
+        deneme1(f, orig_faces);
+        BOPAlgo_Builder builder;
+        for (auto &oface: f.to_be_fused) {
+            builder.AddArgument(oface.face);
+        }
+        builder.SetNonDestructive(false); // Safe input shapes option allows preventing modification of the input shapes
+        builder.SetCheckInverted(false);  // Enables/Disables the check of the input solids for inverted status.
+        // print(precision_Confusion()); // Returns the recommended precision value when checking coincidence of two points in real space.
+        builder.SetFuzzyValue(fuzzy_tol); // Fuzzy option allows setting the additional tolerance for the operation
+        builder.SetRunParallel(true);  // Parallel processing option allows running the algorithm in parallel mode
+        //builder.SetParallelMode(true);
+        builder.SetUseOBB(true);  // Usage of Oriented Bounding Boxes in the operation
+        // from OCC.Core.BOPAlgo import BOPAlgo_GlueShift
+        // builder.SetGlue(BOPAlgo_GlueShift);  // Gluing option allows speeding-up the intersection of the arguments
+        builder.SetToFillHistory(true);  // Allows disabling the history collection.
+
+        builder.Perform();
+
+        if (builder.HasWarnings()) {
+            std::cerr << "Warnings:" << std::endl;
+            builder.DumpWarnings(std::cerr);
+        }
+        if (builder.HasErrors()) {
+            std::cerr << "Errors:" << std::endl;
+            builder.DumpErrors(std::cerr);
+        }
+
+        if (!builder.HasModified()) {
+            std::cerr << "Nothing was modified." << std::endl;
+            return false;
+        }
+
+        auto L = builder.Modified(f.face);
+        if (L.IsEmpty()) {  // face was not modified
+            cFaces.emplace_back(f.face, &f, cface_id); // original TopoDS_Face, pointer on oFace
+            cface_id++;
+            it++;
+        } else { // face was modified into one or more new faces
+            for (const TopoDS_Shape &shape: L) {
+                orig_faces.emplace_back(TopoDS::Face(shape), f.RelProduct(), oface_id);
+                cFaces.emplace_back(TopoDS::Face(shape), &f, cface_id); // new face, pointer on oFace
+                oface_id++;
+                cface_id++;
+                it = orig_faces.erase(it);
+            }
+        }
+    }
+
+    orig_faces = temp_oFaces;
+    TopoDS_Compound compound;
+    BRep_Builder builder;
+    builder.MakeCompound(compound);
+    for (auto& cface : cFaces) {
+        // Add the face to the compound
+        builder.Add(compound, cface.face);
+    }
+    TopoDS_Shape shape(compound);
+    fuse = shape;
+    return true;
+}

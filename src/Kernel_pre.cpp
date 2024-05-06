@@ -414,36 +414,35 @@ void Kernel::collect_original_faces_clip(std::list<Product> &products, std::list
     std::cout << print_time(elapsed.count(), "Collect original faces", std::to_string(orig_faces.size()));
 }
 
-void Kernel::collect_original_faces(std::list<Product> &products, std::list<oFace> &orig_faces) {
+void Kernel::collect_original_faces(std::list<Product> &products, std::list<oFace> &orig_faces, unsigned int fid) {
 
     auto start = std::chrono::high_resolution_clock::now();
 
     for (auto &product: products)
-        collect_original_faces(product, orig_faces);
+        collect_original_faces(product, orig_faces, fid);
 
     auto finish = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> elapsed = finish - start;
     std::cout << print_time(elapsed.count(), "Collect original faces", std::to_string(orig_faces.size()));
 }
 
-void Kernel::collect_original_faces(Product &product, std::list<oFace> &orig_faces) {
+void Kernel::collect_original_faces(Product &product, std::list<oFace> &orig_faces, unsigned int fid) {
 
-    unsigned int shell_id = 0;
     auto shells = Topo(product.shape).shells();
 
     for (auto &shell: shells) {
         for (auto &face: Topo(shell).faces()) {
-            orig_faces.emplace_back(TopoDS::Face(face), &product, shell_id);
+            orig_faces.emplace_back(TopoDS::Face(face), &product, fid);
             product.orig_faces.push_back(&orig_faces.back());
             if (product.valid) orig_faces.back().SetNormalStatus(FACE_NORMAL_KNOWN);
             else std::cout << "[Info] Add face of non-valid product " << product.guid << ".\n";
         }
-        shell_id++;
+        fid++;
     }
 
     if (shells.Size() == 0)
         for (auto &face: Topo(product.shape).faces()) {
-            orig_faces.emplace_back(TopoDS::Face(face), &product, shell_id);
+            orig_faces.emplace_back(TopoDS::Face(face), &product, fid);
             product.orig_faces.push_back(&orig_faces.back());
             std::cout << "[Info] Add non-shell face " << product.guid << ".\n";
         }

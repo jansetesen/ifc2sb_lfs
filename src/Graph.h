@@ -146,6 +146,7 @@ private:
 
     unsigned int space_id_counter;
     unsigned int face_id_counter;
+    unsigned int oface_shell_id;
     IfcGeom::IteratorSettings settings;
     std::set<IfcUtil::IfcBaseEntity *> virtual_products;
 

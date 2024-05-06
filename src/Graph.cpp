@@ -96,6 +96,7 @@ Graph::Graph(std::string _input,
     face_offset_length = 0.2;
     space_id_counter = 0;
     face_id_counter = 0;
+    oface_shell_id = 0;
     integrate_openings_into_walls = true;
 
     settings.set(IfcGeom::IteratorSettings::FASTER_BOOLEANS, true);
@@ -316,7 +317,7 @@ bool Graph::prepare_faces(Kernel &K, std::unordered_map<IfcUtil::IfcBaseClass *,
 
     //***************************************************************
     // Save all faces of product shapes
-    Kernel::collect_original_faces(products, ifc_faces);
+    Kernel::collect_original_faces(products, ifc_faces, oface_shell_id);
     //***************************************************************
 
     //***************************************************************
@@ -401,9 +402,11 @@ bool Graph::calc_faces_first_level(Kernel &K) {
     // Fuse all faces
     TopoDS_Shape fuse;
     // K.fuse_original_faces_parallel(fuse, ifc_faces, faces_1st_level, fuzzy_tol);
-    if (!Kernel::fuse_original_faces(fuse, ifc_faces, faces_1st_level, fuzzy_tol, face_id_counter))
-        return false;
-    if(VISUAL)
+    //if (!Kernel::fuse_original_faces(fuse, ifc_faces, faces_1st_level, fuzzy_tol, face_id_counter))
+    //    return false;
+    if (!Kernel::deneme2(fuse, ifc_faces, faces_1st_level, fuzzy_tol, face_id_counter, oface_shell_id))
+        //    return false;
+    if(!VISUAL)
         Viewer::visualize_cFaces(faces_1st_level);
 
     while (true) {
@@ -526,6 +529,20 @@ void Graph::calc_faces_first_level_normals_known(const TopoDS_Shape &fuse) {
     Kernel::update_face_adjacencies(faces_1st_level, fuse);
     //***************************************************************
 
+    if(VISUAL) {
+        for (auto &cface: faces_1st_level) {
+            std::list<cFace> nachbarn, face;
+            face.push_back(cface);
+            nachbarn.push_back(cface);
+            for (auto &pair: cface.adjacentfaces)
+                for (auto &nb: pair.second)
+                    nachbarn.push_back(*nb);
+            if (nachbarn.size() > 1) {
+                Viewer::visualize_cFaces(face);
+                Viewer::visualize_cFaces(nachbarn);
+            }
+        }
+    }
     //***************************************************************
     // Add reversed duplicates of offset faces, this will lead to duplicated hashes again
     Kernel::add_offset_face_reversed_duplicates(faces_1st_level, face_id_counter);
@@ -635,7 +652,20 @@ void Graph::calc_faces_first_level_normals_unknown(const TopoDS_Shape &fuse, Ker
     // create network of cface - halfedge - cface
     Kernel::update_face_adjacencies(faces_1st_level, fuse);
     //***************************************************************
-
+    if(VISUAL) {
+        for (auto &cface: faces_1st_level) {
+            std::list<cFace> nachbarn, face;
+            face.push_back(cface);
+            nachbarn.push_back(cface);
+            for (auto &pair: cface.adjacentfaces)
+                for (auto &nb: pair.second)
+                    nachbarn.push_back(*nb);
+            if (nachbarn.size() > 1) {
+                Viewer::visualize_cFaces(face);
+                Viewer::visualize_cFaces(nachbarn);
+            }
+        }
+    }
     //***************************************************************
     // identify faces that don't have adjacent faces on all edges
     Kernel::identify_hanging_faces(faces_1st_level);
@@ -820,7 +850,7 @@ bool Graph::process_spaces(Kernel &K) {
     Kernel::check_parent_faces(faces_1st_level);
     Kernel::check_fixed_normal(faces_1st_level);
     //***************************************************************
-
+    Kernel::log_spaces(spaces);
     return !spaces.empty();
 }
 

@@ -18,6 +18,9 @@ public:
     //! TopoDS_Face is not a pointer!
     TopoDS_Face face;
 
+    std::list<oFace> to_be_fused;
+    unsigned int FaceID() const;
+
     //! Returns the related ifc product, if this is part of an opening (e.g. window). Else returns nullptr.
     IfcUtil::IfcBaseClass *Opening() const;
 

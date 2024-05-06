@@ -8,6 +8,7 @@ oFace::oFace(TopoDS_Face _face, Product *_product, unsigned short int _shell_id)
     isOffset = false;
     opening = nullptr;
     parent_face_id = 0;
+    to_be_fused.clear();
 }
 
 IfcUtil::IfcBaseClass *oFace::Opening() const { return opening; }
@@ -71,3 +72,5 @@ bool oFace::IsIfcClass(std::string s) const {
 }
 
 std::string oFace::Info() const { return IfcClass() + ", " + IfcGuid() + ", " + std::to_string(Kernel::hash(face)); }
+
+unsigned int oFace::FaceID() const { return Kernel::hash(face); }

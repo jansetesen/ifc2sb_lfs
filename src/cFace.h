@@ -369,6 +369,8 @@ public:
     //! Get neighbor face of list L with smallest angle and its desired orientation to have that angle.
     oriFace *FaceWithMinimalAngleConsiderBothOrientations(unsigned int edge_id, used_orientation o1, std::list<oriFace> &L);
 
+    std::list<cFace> to_be_fused;
+
 private:
     oFace *ancestor;
     unsigned int id;
@@ -435,6 +437,7 @@ private:
     bool unifying_criteria_openings(const cFace *a);
 
     bool check_face_normal(gp_Dir n, gp_Dir m, double AngularTolerance, const std::string &s) const;
+
 };
 
 #endif //CFACE_H

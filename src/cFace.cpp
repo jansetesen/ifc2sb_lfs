@@ -26,6 +26,7 @@ cFace::cFace(TopoDS_Face _face, oFace *_face_original, unsigned int _id, cFace *
     status_normal = FACE_NORMAL_UNKNOWN;
     distance = -1;
     CheckSetFaceNormal();
+    to_be_fused.clear();
 }
 
 void cFace::CheckSetFaceNormal() {
@@ -782,6 +783,14 @@ void cFace::SetPropertiesSpaceBoundary(cFace *behind_cface, bool behind_face_is_
         if (behind_face_is_corresponding) {
             corresponding = behind_cface;
             sb_type = SB_TYPE_2A;
+            /*
+            std::list<cFace> a, b;
+            b.emplace_back(*this);
+            a.emplace_back(*this);
+            a.emplace_back(*behind_cface);
+            Viewer::visualize_cFaces_as_space_boundaries(b);
+            Viewer::visualize_cFaces_as_space_boundaries(a);
+            */
         }
     }
 

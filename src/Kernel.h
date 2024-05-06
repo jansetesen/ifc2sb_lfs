@@ -195,13 +195,15 @@ private:
 
     typedef rtree_lib::RTree<cFace *, double, 3, double> cface_tree3D;
 
+    typedef rtree_lib::RTree<oFace *, double, 3, double> oface_tree3D;
+
     typedef std::unordered_map<IfcUtil::IfcBaseClass *, std::pair<TopoDS_Shape, IfcUtil::IfcBaseClass * >> OWP; // key: opening product, value: a pair of opening shape and window/door product
 
     bool generate_shapes_from_ifc_classes(std::unique_ptr<IfcParse::IfcFile> &model, IfcGeom::IteratorSettings settings, std::list<Product> &products, const std::set<std::string> &include_entities, gp_XYZ &bounds_min, gp_XYZ &bounds_max) const;
 
-    static void collect_original_faces(std::list<Product> &products, std::list<oFace> &orig_faces);
+    static void collect_original_faces(std::list<Product> &products, std::list<oFace> &orig_faces, unsigned int fid);
 
-    static void collect_original_faces(Product &product, std::list<oFace> &orig_faces);
+    static void collect_original_faces(Product &product, std::list<oFace> &orig_faces, unsigned int fid);
 
     static void collect_original_faces_clip(std::list<Product> &products, std::list<oFace> &orig_faces);
 
@@ -800,6 +802,10 @@ private:
     static void remove_inner_window_and_door_faces(std::list<cFace> &cFaces);
 
     static double polygonize_shape_2a_curvature_distance(const TopoDS_Shape &F_tool, const TopoDS_Shape &common, const segmentation_prism &p);
+
+    static void deneme(std::list<cFace> &cFaces);
+    static void deneme1(oFace &oface, std::list<oFace> &orig_faces);
+    static bool deneme2(TopoDS_Shape &fuse, std::list<oFace> &orig_faces, std::list<cFace> &cFaces, double fuzzy_tol, unsigned int &cface_id, unsigned int &oface_id);
 
     friend class Graph;
 
