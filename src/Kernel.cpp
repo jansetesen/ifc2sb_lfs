@@ -6920,7 +6920,7 @@ void Kernel::add_face_reversed(std::list<cFace> &cFaces, cFace *cface, unsigned 
 
 std::string Kernel::remove_first_and_last_char(std::string s) { return s.size() < 2 ? s : s.substr(1, s.size() - 2); }
 
-void Kernel::deneme(std::list<cFace> &cFaces) {
+void Kernel::find_tobefused_cface(std::list<cFace> &cFaces) {
 
     cface_tree3D tree_cfaces;  // fill rtree
     for (auto &cface: cFaces) {
@@ -6959,7 +6959,7 @@ void Kernel::deneme(std::list<cFace> &cFaces) {
     }
 }
 
-void Kernel::deneme1(oFace &oface, std::list<oFace> &orig_faces){
+void Kernel::find_tobefused_oface(oFace &oface, std::list<oFace> &orig_faces){
 
     typedef rtree_lib::RTree<oFace *, double, 3, double> oface_tree3D;
     oface_tree3D tree_ofaces;  // fill rtree
@@ -6992,13 +6992,13 @@ void Kernel::deneme1(oFace &oface, std::list<oFace> &orig_faces){
     }
 }
 
-bool Kernel::deneme2(TopoDS_Shape &fuse, std::list<oFace> &orig_faces, std::list<cFace> &cFaces, double fuzzy_tol, unsigned int &cface_id, unsigned int &oface_id){
+bool Kernel::fuse_ofaces(TopoDS_Shape &fuse, std::list<oFace> &orig_faces, std::list<cFace> &cFaces, double fuzzy_tol, unsigned int &cface_id, unsigned int &oface_id){
 
     std::list<oFace> temp_oFaces = orig_faces;
 
     for(auto it = orig_faces.begin(); it != orig_faces.end();) {
         oFace& f = *it;
-        deneme1(f, orig_faces);
+        find_tobefused_oface(f, orig_faces);
         BOPAlgo_Builder builder;
         for (auto &oface: f.to_be_fused) {
             builder.AddArgument(oface.face);

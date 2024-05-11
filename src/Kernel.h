@@ -803,9 +803,9 @@ private:
 
     static double polygonize_shape_2a_curvature_distance(const TopoDS_Shape &F_tool, const TopoDS_Shape &common, const segmentation_prism &p);
 
-    static void deneme(std::list<cFace> &cFaces);
-    static void deneme1(oFace &oface, std::list<oFace> &orig_faces);
-    static bool deneme2(TopoDS_Shape &fuse, std::list<oFace> &orig_faces, std::list<cFace> &cFaces, double fuzzy_tol, unsigned int &cface_id, unsigned int &oface_id);
+    static void find_tobefused_cface(std::list<cFace> &cFaces);
+    static void find_tobefused_oface(oFace &oface, std::list<oFace> &orig_faces);
+    static bool fuse_ofaces(TopoDS_Shape &fuse, std::list<oFace> &orig_faces, std::list<cFace> &cFaces, double fuzzy_tol, unsigned int &cface_id, unsigned int &oface_id);
 
     friend class Graph;
 
