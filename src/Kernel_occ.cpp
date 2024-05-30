@@ -236,6 +236,13 @@ Bnd_Box Kernel::aabb(const TopoDS_Shape &shape, double gap) {
     return bnd;
 }
 
+Bnd_Box Kernel::aabb_fuse(const TopoDS_Shape &shape, double gap) {
+    Bnd_Box bnd;
+    bnd.Enlarge(gap);
+    BRepBndLib::Add(shape, bnd);
+    return bnd;
+}
+
 Bnd_OBB Kernel::obb(const TopoDS_Shape &shape) {
     Bnd_OBB obb;
     BRepBndLib::AddOBB(shape, obb);

@@ -17,6 +17,9 @@ typedef double real_t;
 typedef float real_t;
 #endif
 
+class oFace;
+class Kernel;
+
 //! Template switch for IfcOpenShell.
 enum IFC_SCHEMA {
     IFC2X3, IFC4, IFC4X1, IFC4X2, IFC4X3_RC1
@@ -120,6 +123,16 @@ struct iFace {
         duplicate = false;
     }
 
+};
+
+class bnd_fuse {
+public:
+    bnd_fuse(Bnd_Box& bounding ,oFace& orig) : box(bounding), oface(orig)
+    {
+    };
+
+    Bnd_Box& box;
+    oFace& oface;
 };
 
 typedef std::map<cFace *, std::set<cFace *>> cfaceSetMap;

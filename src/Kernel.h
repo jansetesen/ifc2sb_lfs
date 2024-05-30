@@ -806,7 +806,7 @@ private:
     static void find_tobefused_cface(std::list<cFace> &cFaces);
     static void find_tobefused_oface(oFace &oface, std::list<oFace> &orig_faces);
     static bool fuse_ofaces(TopoDS_Shape &fuse, std::list<oFace> &orig_faces, std::list<cFace> &cFaces, double fuzzy_tol, unsigned int &cface_id, unsigned int &oface_id);
-
+    static Bnd_Box aabb_fuse(const TopoDS_Shape &shape, double gap);
     friend class Graph;
 
     friend class Clip;

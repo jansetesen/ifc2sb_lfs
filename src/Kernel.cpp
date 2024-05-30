@@ -6961,35 +6961,30 @@ void Kernel::find_tobefused_cface(std::list<cFace> &cFaces) {
 
 void Kernel::find_tobefused_oface(oFace &oface, std::list<oFace> &orig_faces){
 
-    typedef rtree_lib::RTree<oFace *, double, 3, double> oface_tree3D;
-    oface_tree3D tree_ofaces;  // fill rtree
-    for (auto &f: orig_faces) {
-        Bnd_Box bnd = Kernel::aabb(f.face, 0.64);
-        double min[3] = {bnd.CornerMin().X(), bnd.CornerMin().Y(), bnd.CornerMin().Z()};
-        double max[3] = {bnd.CornerMax().X(), bnd.CornerMax().Y(), bnd.CornerMax().Z()};
-        tree_ofaces.Insert(min, max, &f);
-    };
-
-    Viewer::visualize_shape(oface.face);
-    Bnd_Box bnd = Kernel::aabb(oface.face, 0.64);
-    Viewer::visualize_shape(aabb_to_shape(bnd));
-    double min[3] = {bnd.CornerMin().X(), bnd.CornerMin().Y(), bnd.CornerMin().Z()};
-    double max[3] = {bnd.CornerMax().X(), bnd.CornerMax().Y(), bnd.CornerMax().Z()};
-    std::list<oFace *> found_nb_faces;
-    tree_ofaces.Search(min, max, [&found_nb_faces](oFace *found_nb_face) {
-        found_nb_faces.push_back(found_nb_face);
-        return true;
-        });
-    oface.to_be_fused.push_back(oface);
-
-    for (auto &f: found_nb_faces) {
-        if (f->FaceID() == oface.FaceID()) {
-            //std::cout << "[Info] Skip coplanar face. " << cface.Info() << "\t" << f->Info() << "\n";
-            continue;
-        }
-
-        oface.to_be_fused.push_back(*f);
+    std::list<bnd_fuse> bounding_boxes;
+    for (auto& face : orig_faces) {
+        Bnd_Box box = Kernel::aabb_fuse(face.face, 0.64);
+        bnd_fuse bnd(box, face);
+        bounding_boxes.push_back(bnd);
     }
+
+    //save intersecting info
+    for (auto& bnd1 : bounding_boxes) {
+        for (auto& bnd2 : bounding_boxes) {
+            if (!bnd1.box.IsOut(bnd2.box)){
+                if (bnd1.oface.FaceID() == bnd2.oface.FaceID()) {
+                    //std::cout << "[Info] Skip coplanar face. " << cface.Info() << "\t" << f->Info() << "\n";
+                    continue;
+                }
+
+                if (std::find(bnd1.oface.to_be_fused.begin(), bnd1.oface.to_be_fused.end(), bnd2.oface) == bnd1.oface.to_be_fused.end())
+                    bnd1.oface.to_be_fused.push_back(bnd2.oface);
+                if (std::find(bnd2.oface.to_be_fused.begin(), bnd2.oface.to_be_fused.end(), bnd1.oface) == bnd2.oface.to_be_fused.end())
+                    bnd2.oface.to_be_fused.push_back(bnd1.oface);
+            }
+        }
+    }
+
 }
 
 bool Kernel::fuse_ofaces(TopoDS_Shape &fuse, std::list<oFace> &orig_faces, std::list<cFace> &cFaces, double fuzzy_tol, unsigned int &cface_id, unsigned int &oface_id){
