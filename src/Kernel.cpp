@@ -6964,6 +6964,12 @@ void Kernel::find_tobefused_oface(oFace &oface, std::list<oFace> &orig_faces){
     std::list<bnd_fuse> bounding_boxes;
     for (auto& face : orig_faces) {
         Bnd_Box box = Kernel::aabb_fuse(face.face, 0.64);
+        /*
+        TopoDS_ListOfShape shapes;
+        shapes.Append(aabb_to_shape(box));
+        shapes.Append(face.face);
+        Viewer::visualize_shapelist(shapes);
+        */
         bnd_fuse bnd(box, face);
         bounding_boxes.push_back(bnd);
     }
@@ -6972,6 +6978,20 @@ void Kernel::find_tobefused_oface(oFace &oface, std::list<oFace> &orig_faces){
     for (auto& bnd1 : bounding_boxes) {
         for (auto& bnd2 : bounding_boxes) {
             if (!bnd1.box.IsOut(bnd2.box)){
+                /*
+                TopoDS_ListOfShape shapes;
+                shapes.Append(aabb_to_shape(bnd1.box));
+                shapes.Append(aabb_to_shape(bnd2.box));
+                shapes.Append(bnd1.oface.face);
+                shapes.Append(bnd2.oface.face);
+                Viewer::visualize_shapelist(shapes);
+                */
+                /*
+                TopoDS_ListOfShape shapes1;
+                shapes1.Append(bnd1.oface.face);
+                shapes1.Append(bnd2.oface.face);
+                Viewer::visualize_shapelist(shapes1);
+                */
                 if (bnd1.oface.FaceID() == bnd2.oface.FaceID()) {
                     //std::cout << "[Info] Skip coplanar face. " << cface.Info() << "\t" << f->Info() << "\n";
                     continue;
