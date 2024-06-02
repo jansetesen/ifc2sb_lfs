@@ -402,11 +402,11 @@ bool Graph::calc_faces_first_level(Kernel &K) {
     // Fuse all faces
     TopoDS_Shape fuse;
     // K.fuse_original_faces_parallel(fuse, ifc_faces, faces_1st_level, fuzzy_tol);
-    //if (!Kernel::fuse_original_faces(fuse, ifc_faces, faces_1st_level, fuzzy_tol, face_id_counter))
+    if (!Kernel::fuse_original_faces(fuse, ifc_faces, faces_1st_level, fuzzy_tol, face_id_counter))
+        return false;
+    //if (!Kernel::fuse_ofaces(fuse, ifc_faces, faces_1st_level, fuzzy_tol, face_id_counter, oface_shell_id))
     //    return false;
-    if (!Kernel::fuse_ofaces(fuse, ifc_faces, faces_1st_level, fuzzy_tol, face_id_counter, oface_shell_id))
-        //    return false;
-    if(!VISUAL)
+    if(VISUAL)
         Viewer::visualize_cFaces(faces_1st_level);
 
     while (true) {
