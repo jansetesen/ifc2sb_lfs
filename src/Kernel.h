@@ -220,6 +220,8 @@ private:
 
     static bool fuse_original_faces(TopoDS_Shape &fuse, std::list<oFace> &orig_faces, std::list<cFace> &cFaces, double fuzzy_tol, unsigned int &fid);
 
+    static bool fuse_original_faces2(TopoDS_Shape &fuse, std::list<oFace> &orig_faces, std::list<cFace> &cFaces, double fuzzy_tol, unsigned int &fid);
+
     static bool fuse_original_faces(TopoDS_Shape &fuse, std::set<oFace *> &orig_faces, std::list<cFace> &cFaces, double fuzzy_tol);
 
     static void correct_face_normals(std::list<cFace> &cFaces);

@@ -223,13 +223,13 @@ void Kernel::check_fixed_normal(std::list<cFace> &cFaces) {
     auto start = std::chrono::high_resolution_clock::now();
 
     unsigned int n = 0;
-
+    /*
     for (auto &cface: cFaces)
         if (cface.NormalStatus() == FACE_NORMAL_UNKNOWN) {
             std::cerr << "[Warning] Face normal is unknown " << cface.Info() << "." << std::endl;
             n++;
         }
-
+    */
     auto finish = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> elapsed = finish - start;
     std::cout << print_time(elapsed.count(), "Check fixed normal", std::to_string(n) + "/" + std::to_string(cFaces.size()));
@@ -555,11 +555,11 @@ void Kernel::check_redundant_cFaces(std::list<cFace> &cFaces) {
     std::map<std::tuple<Product *, unsigned int, unsigned int, bool>, std::list<cFace *>> M; // product, shell id, face id
     for (auto &cface: cFaces)
         M[std::make_tuple(cface.RelProduct(), cface.Ancestor()->ShellID(), cface.FaceID(), cface.IsOffset())].push_back(&cface);
-
+    /*
     for (auto &m: M)
         if (m.second.size() > 1) // can occur, when two faces of the shell are close to each other, resulting in a coplanar face paur while fusing
             std::cout << "[Warning] Duplicate cface within product and shell " << std::get<0>(m.first)->guid << "\t" << std::get<1>(m.first) << "\t" << std::get<2>(m.first) << "\t" << std::get<3>(m.first) << "\tSIZE " << m.second.size() << "\n";
-
+    */
     auto finish = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> elapsed = finish - start;
     std::cout << print_time(elapsed.count(), "Check for redundant cFaces", std::to_string(cFaces.size()));

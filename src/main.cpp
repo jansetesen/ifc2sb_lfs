@@ -63,7 +63,7 @@ int main(int argc, char **argv) {
             ("help,h", "display usage information")
             ("version,v", "display version information")
             ("yes,y", "answer 'yes' automatically to possible confirmation queries (e.g. overwriting an existing output file)")
-            ("threads,j", po::value<unsigned int>(&num_threads)->default_value(4), "Number of parallel processing threads for geometry interpretation");
+            ("threads,j", po::value<unsigned int>(&num_threads)->default_value(8), "Number of parallel processing threads for geometry interpretation");
 
     // File options
     po::options_description fileio_options;

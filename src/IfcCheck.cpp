@@ -144,7 +144,7 @@ void IfcCheck::check_ifc_spaces_shell(std::list<T> &spaces) {
 
 template<typename T>
 void IfcCheck::evaluation(const std::list<T> &L, const std::string &name) {
-
+    /*
     for (const auto &O: L) {
         if (O.errors.empty())
             std::cout << "\t" << name << " " << O.guid << ": ok\n";
@@ -154,6 +154,7 @@ void IfcCheck::evaluation(const std::list<T> &L, const std::string &name) {
                 std::cout << "\t\t" << error_to_string[error] << "\n";
         }
     }
+     */
 }
 
 void IfcCheck::check_ifc_space_boundaries(const std::string &ifcclass) {

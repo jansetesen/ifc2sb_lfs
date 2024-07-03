@@ -28,6 +28,83 @@ bool Kernel::fuse_original_faces(TopoDS_Shape &fuse, std::list<oFace> &orig_face
 
     auto start = std::chrono::high_resolution_clock::now();
 
+    // Attention: Creating copies of shapes, seems to raise complexity of shape (see dump) and therefore lowers speed of fusing!
+    // Same goes for shape that have a triangulation
+
+    // populate builder
+    BOPAlgo_Builder builder;
+    for (const auto &f: orig_faces)
+        builder.AddArgument(f.face);
+
+    builder.SetNonDestructive(false); // Safe input shapes option allows preventing modification of the input shapes
+    builder.SetCheckInverted(false);  // Enables/Disables the check of the input solids for inverted status.
+    // print(precision_Confusion()); // Returns the recommended precision value when checking coincidence of two points in real space.
+    builder.SetFuzzyValue(fuzzy_tol); // Fuzzy option allows setting the additional tolerance for the operation
+    BOPAlgo_Options::SetParallelMode(true);
+    builder.SetRunParallel(true);  // Parallel processing option allows running the algorithm in parallel mode
+    builder.SetUseOBB(true);  // Usage of Oriented Bounding Boxes in the operation
+    // from OCC.Core.BOPAlgo import BOPAlgo_GlueShift
+    //builder.SetGlue(BOPAlgo_GlueShift);  // Gluing option allows speeding-up the intersection of the arguments
+    builder.SetToFillHistory(true);  // Allows disabling the history collection.
+
+    builder.Perform();
+    /*
+    if (builder.HasWarnings()) {
+        std::cerr << "Warnings:" << std::endl;
+        builder.DumpWarnings(std::cerr);
+    }
+    if (builder.HasErrors()) {
+        std::cerr << "Errors:" << std::endl;
+        builder.DumpErrors(std::cerr);
+    }
+    */
+    if (!builder.HasModified()) {
+        std::cerr << "Nothing was modified." << std::endl;
+        return false;
+    }
+
+    for (auto &orig_face: orig_faces) {
+
+        bool isDeleted = builder.IsDeleted(orig_face.face); // in case face was deleted, don't add to cfaces (maybe add the generated?). Without ignoring, the cface.face will not be present is fuse shape
+
+        //if (isDeleted) {
+        //    auto Generated = builder.Generated(orig_face.face);
+        //    std::cerr << "[Error] Face was deleted! " << hash(orig_face.face) << "\t" << orig_face.IfcGuid() << "\t" << orig_face.IfcClass() << "\t" << isDeleted << "\t" << Generated.Size() << std::endl;
+        //    continue;
+        //}
+
+        // because faces are the arguments in fuse, only entities TopAbs_VERTEX and TopAbs_EDGE can be generated
+        // auto Generated = builder.Generated(orig_face.face);
+        // if (!Generated.IsEmpty())
+        //     for (const TopoDS_Shape &shape : Generated)
+        //         std::cerr << hash(orig_face.face) << "\t" << hash(shape) << "\t" << shapeEnum_to_string[shape.ShapeType()] << "\t" << shape.Orientation() << std::endl;
+
+        auto L = builder.Modified(orig_face.face);
+
+        if (L.IsEmpty()) {  // face was not modified
+            cFaces.emplace_back(orig_face.face, &orig_face, fid); // original TopoDS_Face, pointer on oFace
+            fid++;
+        } else // face was modified into one or more new faces
+            for (const TopoDS_Shape &shape: L) {
+                cFaces.emplace_back(TopoDS::Face(shape), &orig_face, fid); // new face, pointer on oFace
+                fid++;
+            }
+    }
+
+    fuse = builder.Shape();
+
+    auto finish = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> elapsed = finish - start;
+    std::cout << print_time(elapsed.count(), "Fuse original faces", std::to_string(Topo(fuse).faces().Size()) + ", " + std::to_string(cFaces.size()));
+
+    return true;
+
+}
+
+bool Kernel::fuse_original_faces2(TopoDS_Shape &fuse, std::list<oFace> &orig_faces, std::list<cFace> &cFaces, double fuzzy_tol, unsigned int &fid) {
+
+    auto start = std::chrono::high_resolution_clock::now();
+
     // Define the batch size
     size_t batchSize = 1000; // Adjust this value as needed
 
@@ -1770,7 +1847,7 @@ std::string Kernel::print_time(double t, const std::string &s1, const std::strin
 }
 
 void Kernel::check_containment_in_fuse(const TopoDS_Shape &fuse, std::list<cFace> &cFaces, bool check_edges) {
-
+/*
     auto start = std::chrono::high_resolution_clock::now();
 
     TopoDS_ListOfShape S = Topo(fuse).faces();
@@ -1834,7 +1911,8 @@ void Kernel::check_containment_in_fuse(const TopoDS_Shape &fuse, std::list<cFace
     auto finish = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> elapsed = finish - start;
     std::cout << print_time(elapsed.count(), "Check containment in fuse", std::to_string(S.Size()) + ", " + std::to_string(cFaces.size()));
-}
+*/
+ }
 
 void Kernel::get_zones_from_octree(std::vector<std::pair<std::array<double, 3>, std::set<std::string
 >>> &spaces_guids, std::vector<std::pair<std::array<double, 3>, std::set<unsigned int>>> &spaces_triangles,
@@ -2985,20 +3063,20 @@ void Kernel::check_fuse(const TopoDS_Shape &fuse) {
 //        if (!m.First().IsSame(m.Last())) // sometimes in non-closed shape same face references to itself
 //            std::cout << "F1 " << hash(m.First()) << "\tF2 " << hash(m.Last()) << "\n";
 
-    TopExp_Explorer Ex;
-    for (Ex.Init(fuse, TopAbs_EDGE); Ex.More(); Ex.Next()) {
-        const TopTools_ListOfShape &faces = M.FindFromKey(Ex.Current());
+//    TopExp_Explorer Ex;
+//    for (Ex.Init(fuse, TopAbs_EDGE); Ex.More(); Ex.Next()) {
+//        const TopTools_ListOfShape &faces = M.FindFromKey(Ex.Current());
 
-        if (faces.Size() == 1) {
-            if (Ex.Current().Orientation() == TopAbs_INTERNAL) std::cerr << "[Warning] Only one adjacent face (id) on seam edge " << hash(Ex.Current()) << "\t" << hash(faces.First()) << "\n";
-            else std::cerr << "[Warning] Only one adjacent face (id) on non-seam edge " << hash(Ex.Current()) << "\t" << hash(faces.First()) << "\n";
-        }
+//        if (faces.Size() == 1) {
+//            if (Ex.Current().Orientation() == TopAbs_INTERNAL) std::cerr << "[Warning] Only one adjacent face (id) on seam edge " << hash(Ex.Current()) << "\t" << hash(faces.First()) << "\n";
+//            else std::cerr << "[Warning] Only one adjacent face (id) on non-seam edge " << hash(Ex.Current()) << "\t" << hash(faces.First()) << "\n";
+//        }
 
 //        std::cout << "HE " << hash(Ex.Current()) << " \t F ";
 //        for (auto &face : faces)
 //            std::cout << " " << hash(face);
 //        std::cout << "\n";
-    }
+//    }
 
     auto finish = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> elapsed = finish - start;
@@ -3062,7 +3140,7 @@ void Kernel::check_adjacency(const TopoDS_Shape &fuse, std::list<cFace> &cFaces,
 
             //********************************************************
             // evaluation
-
+            /*
             // Face info
             T.push_back(
                     "\nFace: " + cface.Info() + "\t" + std::to_string(cface.Ancestor()->ShellID()) + "\t" + std::to_string(edge_id) + "\t" +
@@ -3180,6 +3258,7 @@ void Kernel::check_adjacency(const TopoDS_Shape &fuse, std::list<cFace> &cFaces,
             }
 
             if (error) for (const auto &t: T) std::cout << t;
+            */
         }
 
     auto finish = std::chrono::high_resolution_clock::now();
@@ -3860,22 +3939,23 @@ TopoDS_ListOfShape Kernel::clip_faces(const TopoDS_Face &F1, const TopoDS_Face &
 }
 
 void Kernel::check_containment_of_fuse_in_cFaces(const TopoDS_Shape &fuse, std::list<cFace> &cFaces) {
+    /*
+     auto start = std::chrono::high_resolution_clock::now();
 
-    auto start = std::chrono::high_resolution_clock::now();
+     std::set<unsigned int> L;
+     for (auto &cface: cFaces)
+         L.insert(cface.FaceID());
 
-    std::set<unsigned int> L;
-    for (auto &cface: cFaces)
-        L.insert(cface.FaceID());
+     TopoDS_ListOfShape S = Topo(fuse).faces();
 
-    TopoDS_ListOfShape S = Topo(fuse).faces();
+     for (const auto &f: S)
+         if (L.find(hash(f)) == L.end())
+             std::cerr << "[Error] Fuse face not contained in cFaces! " << hash(f) << std::endl;
 
-    for (const auto &f: S)
-        if (L.find(hash(f)) == L.end())
-            std::cerr << "[Error] Fuse face not contained in cFaces! " << hash(f) << std::endl;
-
-    auto finish = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> elapsed = finish - start;
-    std::cout << print_time(elapsed.count(), "Check containment in cFaces", std::to_string(S.Size()) + ", " + std::to_string(cFaces.size()));
+     auto finish = std::chrono::high_resolution_clock::now();
+     std::chrono::duration<double> elapsed = finish - start;
+     std::cout << print_time(elapsed.count(), "Check containment in cFaces", std::to_string(S.Size()) + ", " + std::to_string(cFaces.size()));
+ */
 }
 
 bool Kernel::fuse_clipped_faces(TopoDS_Shape &fuse, std::list<cFace> &cFaces, const TopoDS_ListOfShape &clips, std::list<cFace> &new_cFaces, double fuzzy_tol, unsigned int &fid) {
@@ -7004,6 +7084,9 @@ void Kernel::find_tobefused_cface(std::list<cFace> &cFaces) {
 
 void Kernel::find_tobefused_oface(oFace &oface, std::list<oFace> &orig_faces){
 
+    Bnd_Box thisbox = Kernel::aabb_fuse(oface.face, 0.64);
+    bnd_fuse thisbnd(thisbox, oface);
+
     std::vector<bnd_fuse> bounding_boxes;
     for (auto& face : orig_faces) {
         Bnd_Box box = Kernel::aabb_fuse(face.face, 0.64);
@@ -7020,35 +7103,44 @@ void Kernel::find_tobefused_oface(oFace &oface, std::list<oFace> &orig_faces){
     //save intersecting info
 #pragma omp parallel for
     for (int i = 0; i < bounding_boxes.size(); i++) {
-        for (int j = 0; j < bounding_boxes.size(); j++) {
-            auto& bnd1 = bounding_boxes[i];
-            auto& bnd2 = bounding_boxes[j];
 
-            if (!bnd1.box.IsOut(bnd2.box)){
-                if (bnd1.oface.FaceID() == bnd2.oface.FaceID()) {
+        auto& bnd1 = bounding_boxes[i];
+        int a, b=0;
+        if (std::find(bnd1.oface.to_be_fused.begin(), bnd1.oface.to_be_fused.end(), thisbnd.oface) != bnd1.oface.to_be_fused.end()) {
+            a=1;
+            continue;
+        }
+        if (std::find(thisbnd.oface.to_be_fused.begin(), thisbnd.oface.to_be_fused.end(), bnd1.oface) != thisbnd.oface.to_be_fused.end()){
+            b=1;
+            continue;
+        }
+
+            if (!bnd1.box.IsOut(thisbnd.box)){
+
+            if (bnd1.oface.FaceID() == thisbnd.oface.FaceID()) {
                     continue;
                 }
+
                 //TopoDS_ListOfShape shapes;
                 //shapes.Append(aabb_to_shape(bnd1.box));
-                //shapes.Append(aabb_to_shape(bnd2.box));
+                //shapes.Append(aabb_to_shape(thisbnd.box));
                 //shapes.Append(bnd1.oface.face);
-                //shapes.Append(bnd2.oface.face);
+                //shapes.Append(thisbnd.oface.face);
                 //Viewer::visualize_shapelist(shapes);
 
 
                 //TopoDS_ListOfShape shapes1;
                 //shapes1.Append(bnd1.oface.face);
-                //shapes1.Append(bnd2.oface.face);
+                //shapes1.Append(thisbnd.oface.face);
                 //Viewer::visualize_shapelist(shapes1);
 
 #pragma omp critical
                 {
-                    if (std::find(bnd1.oface.to_be_fused.begin(), bnd1.oface.to_be_fused.end(), bnd2.oface) == bnd1.oface.to_be_fused.end())
-                        bnd1.oface.to_be_fused.push_back(bnd2.oface);
-                    if (std::find(bnd2.oface.to_be_fused.begin(), bnd2.oface.to_be_fused.end(), bnd1.oface) == bnd2.oface.to_be_fused.end())
-                        bnd2.oface.to_be_fused.push_back(bnd1.oface);
+                    if (!a)
+                        bnd1.oface.to_be_fused.push_back(thisbnd.oface);
+                    if (!b)
+                        thisbnd.oface.to_be_fused.push_back(bnd1.oface);
                 }
-            }
         }
     }
 }

@@ -145,26 +145,21 @@ void ShapeHealing::fuse() {
     for (Ex.Init(Shp, TopAbs_FACE); Ex.More(); Ex.Next())
         B.AddArgument(Ex.Current());
 
-    std::cout << "heyyyy" << B.Arguments().Size() <<std::endl;
+    B.SetFuzzyValue(fuse_tol);
+    B.Perform();
 
-    if(B.Arguments().Size()>1) {
-        B.SetFuzzyValue(fuse_tol);
-        B.Perform();
-
-        if (B.HasWarnings()) {
-            std::cerr << "Warnings:" << std::endl;
-            B.DumpWarnings(std::cerr);
-        }
-        if (B.HasErrors()) {
-            std::cerr << "Errors:" << std::endl;
-            B.DumpErrors(std::cerr);
-        }
-        //if (!B.HasModified())
-        //    std::cerr << "Nothing was modified." << std::endl;
-        if (B.Shape().IsNull())
-            std::cout << "yes";
-        Shp = B.Shape();
+    if (B.HasWarnings()) {
+        std::cerr << "Warnings:" << std::endl;
+        B.DumpWarnings(std::cerr);
     }
+    if (B.HasErrors()) {
+        std::cerr << "Errors:" << std::endl;
+        B.DumpErrors(std::cerr);
+    }
+    //if (!B.HasModified())
+    //    std::cerr << "Nothing was modified." << std::endl;
+
+    Shp = B.Shape();
 }
 
 void ShapeHealing::fill_face_list() {

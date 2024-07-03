@@ -401,7 +401,7 @@ bool Graph::calc_faces_first_level(Kernel &K) {
     //***************************************************************
     // Fuse all faces
     TopoDS_Shape fuse;
-    // K.fuse_original_faces_parallel(fuse, ifc_faces, faces_1st_level, fuzzy_tol);
+    //K.fuse_original_faces_parallel(fuse, ifc_faces, faces_1st_level, fuzzy_tol);
     if (!Kernel::fuse_original_faces(fuse, ifc_faces, faces_1st_level, fuzzy_tol, face_id_counter))
         return false;
     //if (!Kernel::fuse_ofaces(fuse, ifc_faces, faces_1st_level, fuzzy_tol, face_id_counter, oface_shell_id))
@@ -488,6 +488,9 @@ void Graph::calc_faces_first_level_normals_known(const TopoDS_Shape &fuse) {
     //***************************************************************
     // deletes trash faces from faces_1st_level and moves them to faces_trash
     Kernel::remove_trash(faces_1st_level, faces_trash);
+
+    if(VISUAL)
+        Viewer::visualize_cFaces(faces_1st_level);
     // Attention. Now there are faces in fuse shape, that are not in faces_1st_level anymore
     //***************************************************************
     //TopoDS_Shape fuse2;
@@ -569,7 +572,8 @@ void Graph::calc_faces_first_level_normals_known(const TopoDS_Shape &fuse) {
     // adjacence info of a cface' edges are removed, if adjacent cface is trash
     Kernel::remove_trash_and_face_adjacency(faces_1st_level);
     //***************************************************************
-
+    if(VISUAL)
+        Viewer::visualize_cFaces(faces_1st_level);
     //***************************************************************
     // identifies offset faces that are not in contact with shell anymore
     Kernel::identify_decoupled_offset_faces(faces_1st_level);
@@ -641,7 +645,8 @@ void Graph::calc_faces_first_level_normals_unknown(const TopoDS_Shape &fuse, Ker
     // deletes trash faces from faces_1st_level and moves them to faces_trash
     Kernel::remove_trash(faces_1st_level, faces_trash);
     //***************************************************************
-
+    if(VISUAL)
+        Viewer::visualize_cFaces(faces_1st_level);
     //***************************************************************
     // checks for duplicate HashCodes in faces_1st_level' TopoDS_Faces
     Kernel::check_duplicate_faces(faces_1st_level);
@@ -691,7 +696,8 @@ void Graph::calc_faces_first_level_normals_unknown(const TopoDS_Shape &fuse, Ker
     //***************************************************************
     Kernel::remove_trash_and_face_adjacency(faces_1st_level);
     //***************************************************************
-
+    if(VISUAL)
+        Viewer::visualize_cFaces(faces_1st_level);
     //***************************************************************
     // find components in building graph aka spaces
     Kernel::check_adjacency_self_reference(faces_1st_level);
@@ -713,6 +719,8 @@ void Graph::calc_faces_first_level_normals_unknown(const TopoDS_Shape &fuse, Ker
     Kernel::check_fixed_normal(faces_1st_level);
     Kernel::check_closed_space_edge_id(spaces);
     //***************************************************************
+    if(VISUAL)
+        Viewer::visualize_cFaces(faces_1st_level);
 }
 
 // Spaces
