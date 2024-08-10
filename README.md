@@ -22,6 +22,7 @@ Building Elements (left) | Generated air volumes/spaces (right):
 ## Installation on Linux
 ####  Prerequisites and dependencies
 An instruction (Dockerfile) can be found [here](add/Dockerfile)
+Apptainer image can be found [here](add/ifc2sb_latest.sif)
 
 **Miscellaneous**
 ```bash
